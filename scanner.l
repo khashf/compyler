@@ -68,7 +68,7 @@ std::stack<int> _indent_stack;
                * they're combined in a single line.  For the purposes of this
                * project, that's OK.
                */
-              if (_indent_stack.top() < yyleng) {
+              if (_indent_stack.top() < (int)yyleng) {
                 /*
                  * If the current indentation level is greater than the
                  * previous indentation level (stored at the top of the stack),
@@ -85,7 +85,7 @@ std::stack<int> _indent_stack;
                  * the stack until the top is equal to the current indentation
                  * level.  Emit a DEDENT for each element popped from the stack.
                  */
-                while (!_indent_stack.empty() && _indent_stack.top() != yyleng) {
+                while (!_indent_stack.empty() && _indent_stack.top() != (int)yyleng) {
                   _indent_stack.pop();
                   /* std::cout << "DEDENT" << std::endl; */
                   PUSH_TOKEN(DEDENT, NULL);

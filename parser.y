@@ -3,6 +3,7 @@
 #include <set>
 
 #include "parser.hpp"
+#include "ast.hpp"
 
 extern int yylex();
 void yyerror(YYLTYPE* loc, const char* err);

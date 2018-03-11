@@ -1,0 +1,13 @@
+digraph G {
+	root [label="Block"]
+	root -> root_0;
+	root_0 [label="Assignment"]
+	root_0 -> root_0_left;
+	root_0_left [shape=box,label="Identifier: pi"]
+	root_0 -> root_0_right;
+	root_0_right [label="TIMES"]
+	root_0_right -> root_0_right_left;
+	root_0_right_left [shape=box,label="Identifier: a"]
+	root_0_right -> root_0_right_right;
+	root_0_right_right [shape=box,label="Identifier: b"]
+}

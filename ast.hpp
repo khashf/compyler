@@ -42,7 +42,7 @@ struct UnaryNode: public ASTNode {
         this->label = label;
     }
     virtual void PrintChilds() {
-        std::cout << "\t" << name << " -> " << name << "_" << child->name << ";";
+        std::cout << "\t" << name << " -> " << child->name << ";" << std::endl;
         child->Print();
     }
 };
@@ -58,18 +58,18 @@ struct BinaryNode: public ASTNode {
         // example:
         // root_2 -> root_2_left
         // root_4_if_3_right
-        std::cout << "\t" << name << " -> " << name << "_" << left->name << ";";
+        std::cout << "\t" << name << " -> " << left->name << ";" << std::endl;
         left->Print();
-        std::cout << "\t" << name << " -> " << name << "_" << right->name << ";";
+        std::cout << "\t" << name << " -> " << right->name << ";" << std::endl;
         right->Print();
     }
 };
 
 struct BlockNode: public ASTNode {
     std::vector<ASTNode*> childs;
-    BlockNode(std::string name, std::string label) {
+    BlockNode(std::string name) {
         this->name = name;
-        this->label = label;
+        this->label = "Block";
     }
     virtual void PrintChilds() {
         std::vector<ASTNode*>::iterator it;
@@ -78,7 +78,7 @@ struct BlockNode: public ASTNode {
             // root -> root_4
             // if -> if_5
             // while -> while_6
-            std::cout << "\t" << name << " -> " << name << "_" << (*it)->name << ";";
+            std::cout << "\t" << name << " -> " << (*it)->name << ";" << std::endl;
             (*it)->Print();
         }
     }
@@ -89,43 +89,52 @@ struct IfNode: public ASTNode {
     BlockNode* if_block = nullptr;
     BinaryNode* elif = nullptr;
     BlockNode* else_block = nullptr;
-    IfNode(std::string name, std::string label) {
+    IfNode(std::string name) {
         this->name = name;
-        this->label = label;
+        this->label = "If";
     }
     virtual void PrintChilds() {
-        std::cout << "\t" << name << " -> " << name << "_" << condition->name << ";";
+        std::cout << "\t" << name << " -> " << condition->name << ";" << std::endl;
         condition->Print();
-        std::cout << "\t" << name << " -> " << name << "_" << if_block->name << ";";
+        std::cout << "\t" << name << " -> " << if_block->name << ";" << std::endl;
         if_block->Print();
         if (elif != nullptr) {
-            std::cout << "\t" << name << " -> " << name << "_" << elif->name << ";";
+            std::cout << "\t" << name << " -> " << elif->name << ";" << std::endl;
             elif->Print();
         }
         if (else_block != nullptr) {
-            std::cout << "\t" << name << " -> " << name << "_" << else_block->name << ";";
+            std::cout << "\t" << name << " -> " << else_block->name << ";" << std::endl;
             else_block->Print();
         }
     }
 };
 
-// struct ElifNode: public ASTNode { //     ASTNode* condition; //     ASTNode* block; //     virtual void PrintChilds() { //         std::cout << "\t" << name << " -> " << name << "_" << condition->name << ";"; //         condition->Print(); //         std::cout << "\t" << name << " -> " << name << "_" << block->name << ";"; //         block->Print(); //     } //
+// struct ElifNode: public ASTNode { 
+//     ASTNode* condition; 
+//     ASTNode* block; 
+//     virtual void PrintChilds() { 
+//         std::cout << "\t" << name << " -> " << condition->name << ";" << std::endl; 
+//         condition->Print(); 
+//         std::cout << "\t" << name << " -> " << block->name << ";" << std::endl; 
+//         block->Print(); 
+//     } 
+//
 // };
 //
 // struct WhileNode: public ASTNode {
 //     ASTNode* condition;
 //     ASTNode* block;
 //     virtual void PrintChilds() {
-//         std::cout << "\t" << name << " -> " << name << "_" << condition->name << ";";
+//         std::cout << "\t" << name << " -> " << condition->name << ";" << std::endl;
 //         condition->Print();
-//         std::cout << "\t" << name << " -> " << name << "_" << block->name << ";";
+//         std::cout << "\t" << name << " -> " << block->name << ";" << std::endl;
 //         block->Print();
 //     }
 // };
 
 
 struct AST {
-    ASTNode* root = new BlockNode("root", "Block");
+    ASTNode* root = new BlockNode("root");
     AST(){}
     ~AST() {
         if (root != nullptr) {

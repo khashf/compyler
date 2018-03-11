@@ -73,10 +73,14 @@ struct BinaryNode: public ASTNode {
         // example:
         // root_2 -> root_2_left
         // root_4_if_3_right
-        std::cout << "\t" << name << " -> " << left->name << ";" << std::endl;
-        left->Print();
-        std::cout << "\t" << name << " -> " << right->name << ";" << std::endl;
-        right->Print();
+        if (left != nullptr) {
+            std::cout << "\t" << name << " -> " << left->name << ";" << std::endl;
+            left->Print();
+        }
+        if (right != nullptr) {
+            std::cout << "\t" << name << " -> " << right->name << ";" << std::endl;
+            right->Print();
+        }
     }
 };
 

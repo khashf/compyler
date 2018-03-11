@@ -10,4 +10,10 @@ digraph G {
 	root_0_right_left [shape=box,label="Identifier: a"]
 	root_0_right -> root_0_right_right;
 	root_0_right_right [shape=box,label="Identifier: b"]
+	root -> root_1;
+	root_1 [label="If"]
+	root_1 -> root_1_cond;
+	root_1_cond [label="GT"]
+	root_1 -> root_1_if;
+	root_1_if [label="Block"]
 }

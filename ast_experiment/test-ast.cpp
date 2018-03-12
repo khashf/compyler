@@ -14,8 +14,8 @@ int main() {
     AST tree;
     tree.root = new BlockNode("root");
     BlockNode* root = dynamic_cast<BlockNode*>(tree.root);
-    root->childs.push_back(new BinaryNode(MakeName("root", "0"), "Assignment"));
-    root->childs.push_back(new IfNode(MakeName("root", "1")));
+    root->childs.push_back(new BinaryNode(MakeName("root", std::to_string((int)root->childs.size())), "Assignment"));
+    root->childs.push_back(new IfNode(MakeName("root", std::to_string((int)root->childs.size()))));
 
     BinaryNode* root_0 = dynamic_cast<BinaryNode*>(root->childs[0]);
     root_0->left = new LiteralNode(MakeName(root_0->name, "left"), "Identifier", "pi");

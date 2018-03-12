@@ -13,7 +13,8 @@ std::string* translate_boolean_str(std::string* boolean_str);
  * generated, and symbols is a simple symbol table.
  */
 std::string* target_program;
-ASTNode* root = new BlockNode("root");
+ASTNode* root = nullptr;
+int n_nodes = 0;
 std::set<std::string> symbols;
 %}
 
@@ -87,16 +88,23 @@ std::set<std::string> symbols;
  * combined into a larger string.
  */
 program
-  : statements { root = $1; }
+  : statements { 
+        $1 = new BlockNode("root");
+        root = $1;
+    }
   ;
 
 statements
-  : statement { $$ = $1; }
-  | statements statement { $$ = new std::string(*$1 + *$2); delete $1; delete $2; }
+  : statement { }
+  | statements statement { }
   ;
 
 statement
-  : assign_statement { $$ = $1; }
+  : assign_statement { 
+        std::string child_name = "assign" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(child_name, "Assignment");
+    }
   | if_statement { $$ = $1; }
   | while_statement { $$ = $1; }
   | break_statement { $$ = $1; }
@@ -130,7 +138,16 @@ expression
   ;
 
 assign_statement
-  : IDENTIFIER ASSIGN expression NEWLINE { symbols.insert(*$1); $$ = new std::string(*$1 + " = " + *$3 + ";\n"); delete $1; delete $3; }
+  : IDENTIFIER ASSIGN expression NEWLINE { 
+        /* symbols.insert(*$1);  */
+        /* $$ = new std::string(*$1 + " = " + *$3 + ";\n");  */
+        /* delete $1;  */
+        /* delete $3;  */
+        std::string left_name = "iden" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$->left = new LiteralNode(left_name, "Identifier", *$1);
+        $$->right = $2;
+    }
   ;
 
 block

@@ -13,7 +13,7 @@ std::string* translate_boolean_str(std::string* boolean_str);
  * generated, and symbols is a simple symbol table.
  */
 std::string* target_program;
-ASTNode* root = nullptr;
+BlockNode* root = nullptr;
 int n_nodes = 0;
 std::set<std::string> symbols;
 %}
@@ -89,97 +89,276 @@ std::set<std::string> symbols;
  */
 program
   : statements { 
-        $1 = new BlockNode("root");
-        root = $1;
+        std::string name = "root" + std::to_string(n_nodes);
+        ++n_nodes;
+        root = new BlockNode(name);
+        std::vector<ASTNode*>::iterator it;
+        BlockNode* b = dynamic_cast<BlockNode*>($1);
+        for (it = b->childs.begin(); it != b->childs.end(); ++it) {
+            root->childs.push_back((*it));
+        }
     }
   ;
 
 statements
-  : statement { }
-  | statements statement { }
+  : statement { 
+        BlockNode* b = new BlockNode(std::string("temp"));
+        b->childs.push_back($1);
+        $$ = b;
+    }
+  | statements statement { 
+        $$ = new BlockNode(std::string("temp"));
+        /* Bring all the childs of $1 to $$ */
+        std::vector<ASTNode*>::iterator it;
+        for (it = $1->childs.begin(); it != $1->childs.end(); ++it) {
+            $$->childs.push_back((*it));
+        }
+        $$->childs.push_back($2);
+    }
   ;
 
 statement
   : assign_statement { 
-        std::string child_name = "assign" + std::to_string(n_nodes);
-        ++n_nodes;
-        $$ = new BinaryNode(child_name, "Assignment");
+        $$ = $1;
     }
-  | if_statement { $$ = $1; }
-  | while_statement { $$ = $1; }
-  | break_statement { $$ = $1; }
+  | if_statement { 
+        $$ = $1;
+    }
+  | while_statement {  
+        $$ = $1;
+    }
+  | break_statement { 
+        $$ = $1;
+  }
   ;
 
 primary_expression
-  : IDENTIFIER { $$ = $1; }
-  | FLOAT { $$ = $1; }
-  | INTEGER { $$ = $1; }
-  | BOOLEAN { $$ = translate_boolean_str($1); delete $1; }
-  | LPAREN expression RPAREN { $$ = new std::string("(" + *$2 + ")"); delete $2; }
+  : IDENTIFIER { 
+        std::string name = "iden" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new LiteralNode(name, "Identifier", *$1);
+    }
+  | FLOAT { 
+        std::string name = "float" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new LiteralNode(name, "Float", *$1);
+    }
+  | INTEGER { 
+        std::string name = "integer" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new LiteralNode(name, "Integer", *$1);
+    }
+  | BOOLEAN { 
+        std::string name = "bool" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new LiteralNode(name, "Boolean", *$1);
+    }
+  | LPAREN expression RPAREN { 
+        std::string name = "paren" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new UnaryNode(name, "Paren");
+        $$->child = $2;
+    }
   ;
 
 negated_expression
-  : NOT primary_expression { $$ = new std::string("!" + *$2); delete $2; }
+  : NOT primary_expression { 
+        std::string name = "not" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new UnaryNode(name, "NOT");
+        $$->child = $2;
+    }
   ;
 
 expression
-  : primary_expression { $$ = $1; }
-  | negated_expression { $$ = $1; }
-  | expression PLUS expression { $$ = new std::string(*$1 + " + " + *$3); delete $1; delete $3; }
-  | expression MINUS expression { $$ = new std::string(*$1 + " - " + *$3); delete $1; delete $3; }
-  | expression TIMES expression { $$ = new std::string(*$1 + " * " + *$3); delete $1; delete $3; }
-  | expression DIVIDEDBY expression { $$ = new std::string(*$1 + " / " + *$3); delete $1; delete $3; }
-  | expression EQ expression { $$ = new std::string(*$1 + " == " + *$3); delete $1; delete $3; }
-  | expression NEQ expression { $$ = new std::string(*$1 + " != " + *$3); delete $1; delete $3; }
-  | expression GT expression { $$ = new std::string(*$1 + " > " + *$3); delete $1; delete $3; }
-  | expression GTE expression { $$ = new std::string(*$1 + " >= " + *$3); delete $1; delete $3; }
-  | expression LT expression { $$ = new std::string(*$1 + " < " + *$3); delete $1; delete $3; }
-  | expression LTE expression { $$ = new std::string(*$1 + " <= " + *$3); delete $1; delete $3; }
+  : primary_expression { 
+        $$ = $1; 
+    }
+  | negated_expression { 
+        $$ = $1; 
+    }
+  | expression PLUS expression { 
+        std::string name = "plus" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "PLUS");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression MINUS expression { 
+        std::string name = "minus" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "MINUS");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression TIMES expression { 
+        std::string name = "times" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "TIMES");
+        $$->left = $1;
+        $$->right = $3;
+    } 
+  | expression DIVIDEDBY expression { 
+        std::string name = "dividedby" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "DEVIDEDBY");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression EQ expression { 
+        std::string name = "eq" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "EQ");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression NEQ expression { 
+        std::string name = "neq" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "NEQ");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression GT expression { 
+        std::string name = "gt" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "GT");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression GTE expression { 
+        std::string name = "gte" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "GTE");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression LT expression { 
+        std::string name = "lt" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "LT");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | expression LTE expression { 
+        std::string name = "lte" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "LTE");
+        $$->left = $1;
+        $$->right = $3;
+    }
   ;
 
 assign_statement
   : IDENTIFIER ASSIGN expression NEWLINE { 
-        /* symbols.insert(*$1);  */
-        /* $$ = new std::string(*$1 + " = " + *$3 + ";\n");  */
-        /* delete $1;  */
-        /* delete $3;  */
-        std::string left_name = "iden" + std::to_string(n_nodes);
+        std::string name = "assign" + std::to_string(n_nodes);
         ++n_nodes;
-        $$->left = new LiteralNode(left_name, "Identifier", *$1);
-        $$->right = $2;
+        $$ = new BinaryNode(name, "Assignment");
+        $$->left = $1;
+        $$->right = $3;
     }
   ;
 
 block
-  : INDENT statements DEDENT { $$ = new std::string("{\n" + *$2 + "}"); delete $2; }
+  : INDENT statements DEDENT { 
+        std::string name = "block" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BlockNode(name);
+        std::vector<ASTNode*>::iterator it;
+        for (it = $1->childs.begin(); it != $1->childs.end(); ++it) {
+            $$->childs.push_back((*it));
+        }
+    }
   ;
 
 condition
-  : expression { $$ = $1; }
-  | condition AND condition { $$ = new std::string(*$1 + " && " + *$3); delete $1; delete $3; }
-  | condition OR condition { $$ = new std::string(*$1 + " || " + *$3); delete $1; delete $3; }
+  : expression { 
+        $$ = $1; 
+    }
+  | condition AND condition { 
+        std::string name = "and" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "AND");
+        $$->left = $1;
+        $$->right = $3;
+    }
+  | condition OR condition { 
+        std::string name = "or" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "OR");
+        $$->left = $1;
+        $$->right = $3;
+    }
   ;
 
 if_statement
-  : IF condition COLON NEWLINE block elif_blocks else_block { $$ = new std::string("if (" + *$2 + ") " + *$5 + *$6 + *$7 + "\n"); delete $2; delete $5; delete $6; delete $7; }
+  : IF condition COLON NEWLINE block elif_blocks else_block { 
+        //$$ = new std::string("if (" + *$2 + ") " + *$5 + *$6 + *$7 + "\n"); delete $2; delete $5; delete $6; delete $7;
+        std::string name = "if" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new IfNode(name);
+        $$->condition = $2;
+        $$->if_block = $5;
+
+        /* Push bask $6 */
+        $$->elifs.push_back($6);
+        /* and push its siblings, too */
+        std::vector<ElifNode*>::iterator it;
+        for (it = $6->siblings.begin(); it != $6->siblings.end(); ++it) {
+            $$->elifs.push_back((*it));
+        }
+
+        $$->else_block = $7;
+    }
   ;
 
 elif_blocks
-  : %empty { $$ = new std::string(""); }
-  | elif_blocks ELIF condition COLON NEWLINE block { $$ = new std::string(*$1 + " else if (" + *$3 + ") " + *$6); delete $1; delete $3; delete $6; }
+  : %empty { 
+        $$ = nullptr;
+    }
+  | elif_blocks ELIF condition COLON NEWLINE block { 
+        std::string name = "elif" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new ElifNode(name);
+        $$->condition = $3;
+        $$->elif_block = $6;
+        if ($1 != nullptr) {
+            std::vector<ElifNode*>::iterator it;
+            for (it = $1->siblings.begin(); it != $1->siblings.end(); ++it) {
+                $$->siblings.push_back((*it));
+            }
+        }
+    }
   ;
 
 else_block
-  : %empty { $$ = new std::string(""); }
-  | ELSE COLON NEWLINE block { $$ = new std::string(" else " + *$4); delete $4; }
+  : %empty { 
+        $$ = nullptr;
+    }
+  | ELSE COLON NEWLINE block { 
+        std::string name = "block" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BlockNode(name);
+    }
 
 
 while_statement
-  : WHILE condition COLON NEWLINE block { $$ = new std::string("while (" + *$2 + ") " + *$5 + "\n"); delete $2; delete $5; }
+  : WHILE condition COLON NEWLINE block { 
+        std::string name = "while" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new BinaryNode(name, "While");
+        $$->left = $2;
+        $$->right = $5;
+    }
   ;
 
 break_statement
-  : BREAK NEWLINE { $$ = new std::string("break;\n"); }
+  : BREAK NEWLINE { 
+        std::string name = "break" + std::to_string(n_nodes);
+        ++n_nodes;
+        $$ = new UnaryNode(name, "Break");
+        $$->child = nullptr;
+    }
   ;
 
 %%

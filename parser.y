@@ -371,9 +371,12 @@ else_block
         $$ = nullptr;
     }
   | ELSE COLON NEWLINE block { 
-        std::string name = "block" + std::to_string(n_nodes);
-        ++n_nodes;
-        $$ = new BlockNode(name);
+        /* std::string name = "block" + std::to_string(n_nodes); */
+        /* ++n_nodes; */
+        /* BlockNode* result = new BlockNode(name); */
+        /* $$ = result; */
+        $$ = $4;
+
     }
 
 

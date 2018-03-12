@@ -14,8 +14,8 @@ int main() {
         AST tree(root);
         tree.Print();
 
-        delete root;
-        root = nullptr;
+        // delete root;
+        // root = nullptr;
     }
 }
 

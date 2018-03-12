@@ -13,7 +13,7 @@ std::string* translate_boolean_str(std::string* boolean_str);
  * generated, and symbols is a simple symbol table.
  */
 std::string* target_program;
-BlockNode* root = nullptr;
+ASTNode* root = nullptr;
 int n_nodes = 0;
 std::set<std::string> symbols;
 %}
@@ -91,29 +91,35 @@ program
   : statements { 
         std::string name = "root" + std::to_string(n_nodes);
         ++n_nodes;
-        root = new BlockNode(name);
-        std::vector<ASTNode*>::iterator it;
+        BlockNode* result = new BlockNode(name);
         BlockNode* b = dynamic_cast<BlockNode*>($1);
+
+        std::vector<ASTNode*>::iterator it;
         for (it = b->childs.begin(); it != b->childs.end(); ++it) {
-            root->childs.push_back((*it));
+            result->childs.push_back((*it));
         }
+        root = result;
     }
   ;
 
 statements
   : statement { 
-        BlockNode* b = new BlockNode(std::string("temp"));
-        b->childs.push_back($1);
-        $$ = b;
+        BlockNode* result = new BlockNode(std::string("temp"));
+        result->childs.push_back($1);
+        $$ = result;
     }
   | statements statement { 
-        $$ = new BlockNode(std::string("temp"));
+        BlockNode* result = new BlockNode(std::string("temp"));
+        BlockNode* tmp1 = dynamic_cast<BlockNode*>($1);
+        /* BlockNode* tmp2 = dynamic_cast<BlockNode*>($2); */
+
         /* Bring all the childs of $1 to $$ */
         std::vector<ASTNode*>::iterator it;
-        for (it = $1->childs.begin(); it != $1->childs.end(); ++it) {
-            $$->childs.push_back((*it));
+        for (it = tmp1->childs.begin(); it != tmp1->childs.end(); ++it) {
+            result->childs.push_back((*it));
         }
-        $$->childs.push_back($2);
+        result->childs.push_back($2);
+        $$ = result;
     }
   ;
 
@@ -156,8 +162,9 @@ primary_expression
   | LPAREN expression RPAREN { 
         std::string name = "paren" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new UnaryNode(name, "Paren");
-        $$->child = $2;
+        UnaryNode* result = new UnaryNode(name, "Paren");
+        result->child = $2;
+        $$ = result;
     }
   ;
 
@@ -165,8 +172,9 @@ negated_expression
   : NOT primary_expression { 
         std::string name = "not" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new UnaryNode(name, "NOT");
-        $$->child = $2;
+        UnaryNode* result = new UnaryNode(name, "NOT");
+        result->child = $2;
+        $$ = result;
     }
   ;
 
@@ -180,72 +188,82 @@ expression
   | expression PLUS expression { 
         std::string name = "plus" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "PLUS");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "PLUS");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression MINUS expression { 
         std::string name = "minus" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "MINUS");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "MINUS");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression TIMES expression { 
         std::string name = "times" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "TIMES");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "TIMES");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     } 
   | expression DIVIDEDBY expression { 
         std::string name = "dividedby" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "DEVIDEDBY");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "DEVIDEDBY");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression EQ expression { 
         std::string name = "eq" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "EQ");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "EQ");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression NEQ expression { 
         std::string name = "neq" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "NEQ");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "NEQ");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression GT expression { 
         std::string name = "gt" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "GT");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "GT");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression GTE expression { 
         std::string name = "gte" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "GTE");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "GTE");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression LT expression { 
         std::string name = "lt" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "LT");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "LT");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | expression LTE expression { 
         std::string name = "lte" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "LTE");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "LTE");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   ;
 
@@ -253,9 +271,15 @@ assign_statement
   : IDENTIFIER ASSIGN expression NEWLINE { 
         std::string name = "assign" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "Assignment");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "Assignment");
+        
+        std::string name1 = "iden" + std::to_string(n_nodes);
+        ++n_nodes;
+        LiteralNode* iden = new LiteralNode(name1, "Identifier", *$1);
+        result->left = iden;
+
+        result->right = $3;
+        $$ = result;
     }
   ;
 
@@ -263,11 +287,14 @@ block
   : INDENT statements DEDENT { 
         std::string name = "block" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BlockNode(name);
+        BlockNode* result = new BlockNode(name);
+        BlockNode* tmp2 = dynamic_cast<BlockNode*>($2);
+
         std::vector<ASTNode*>::iterator it;
-        for (it = $1->childs.begin(); it != $1->childs.end(); ++it) {
-            $$->childs.push_back((*it));
+        for (it = tmp2->childs.begin(); it != tmp2->childs.end(); ++it) {
+            result->childs.push_back((*it));
         }
+        $$ = result;
     }
   ;
 
@@ -278,16 +305,18 @@ condition
   | condition AND condition { 
         std::string name = "and" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "AND");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "AND");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   | condition OR condition { 
         std::string name = "or" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "OR");
-        $$->left = $1;
-        $$->right = $3;
+        BinaryNode* result = new BinaryNode(name, "OR");
+        result->left = $1;
+        result->right = $3;
+        $$ = result;
     }
   ;
 
@@ -296,19 +325,23 @@ if_statement
         //$$ = new std::string("if (" + *$2 + ") " + *$5 + *$6 + *$7 + "\n"); delete $2; delete $5; delete $6; delete $7;
         std::string name = "if" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new IfNode(name);
-        $$->condition = $2;
-        $$->if_block = $5;
+        IfNode* result = new IfNode(name);
+        result->condition = $2;
+        result->if_block = dynamic_cast<BlockNode*>($5);
 
         /* Push bask $6 */
-        $$->elifs.push_back($6);
-        /* and push its siblings, too */
-        std::vector<ElifNode*>::iterator it;
-        for (it = $6->siblings.begin(); it != $6->siblings.end(); ++it) {
-            $$->elifs.push_back((*it));
+        if ($6 != nullptr) {
+            ElifNode* tmp6 = dynamic_cast<ElifNode*>($6);
+            result->elifs.push_back(tmp6);
+            /* and push its siblings, too */
+            std::vector<ElifNode*>::iterator it;
+            for (it = tmp6->siblings.begin(); it != tmp6->siblings.end(); ++it) {
+                result->elifs.push_back((*it));
+            }
         }
 
-        $$->else_block = $7;
+        result->else_block = dynamic_cast<BlockNode*>($7);
+        $$ = result;
     }
   ;
 
@@ -319,15 +352,17 @@ elif_blocks
   | elif_blocks ELIF condition COLON NEWLINE block { 
         std::string name = "elif" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new ElifNode(name);
-        $$->condition = $3;
-        $$->elif_block = $6;
+        ElifNode* result = new ElifNode(name);
+        result->condition = $3;
+        result->elif_block = dynamic_cast<BlockNode*>($6);
         if ($1 != nullptr) {
+            ElifNode* tmp1 = dynamic_cast<ElifNode*>($1);
             std::vector<ElifNode*>::iterator it;
-            for (it = $1->siblings.begin(); it != $1->siblings.end(); ++it) {
-                $$->siblings.push_back((*it));
+            for (it = tmp1->siblings.begin(); it != tmp1->siblings.end(); ++it) {
+                result->siblings.push_back((*it));
             }
         }
+        $$ = result;
     }
   ;
 
@@ -346,9 +381,10 @@ while_statement
   : WHILE condition COLON NEWLINE block { 
         std::string name = "while" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new BinaryNode(name, "While");
-        $$->left = $2;
-        $$->right = $5;
+        BinaryNode* result = new BinaryNode(name, "While");
+        result->left = $2;
+        result->right = $5;
+        $$ = result;
     }
   ;
 
@@ -356,8 +392,9 @@ break_statement
   : BREAK NEWLINE { 
         std::string name = "break" + std::to_string(n_nodes);
         ++n_nodes;
-        $$ = new UnaryNode(name, "Break");
-        $$->child = nullptr;
+        UnaryNode* result = new UnaryNode(name, "Break");
+        /* result->child = nullptr; */
+        $$ = result;
     }
   ;
 

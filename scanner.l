@@ -44,7 +44,7 @@ std::stack<int> _indent_stack;
   YYLTYPE loc;
 
   #define PUSH_TOKEN(token, text) do {                         \
-    yylval = text ? new std::string(text) : NULL;              \
+    yylval.str = text ? new std::string(text) : NULL;              \
     loc.first_line = loc.last_line = yylineno;                 \
     int status = yypush_parse(pstate, token, &yylval, &loc);   \
     if (status != YYPUSH_MORE) {                               \

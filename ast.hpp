@@ -113,10 +113,37 @@ struct BlockNode: public ASTNode {
     }
 };
 
+struct ElifNode: public ASTNode {
+    ASTNode* condition = nullptr;
+    BlockNode* elif_block = nullptr;
+    std::vector<ElifNode*> siblings;
+    ElifNode(std::string name) {
+        this->name = name;
+        this->label = "Elif";
+    }
+    ~ElifNode() {
+        if (condition != nullptr)
+            delete condition;
+        condition = nullptr;
+        if (elif_block != nullptr)
+            delete elif_block;
+        elif_block = nullptr;
+        // Don't delete siblings since they will all be handled 
+        // by this node's parent, which is a IfNode
+    }
+    virtual void PrintChilds() {
+        std::cout << "\t" << name << " -> " << condition->name << ";" << std::endl;
+        condition->Print();
+        std::cout << "\t" << name << " -> " << elif_block->name << ";" << std::endl;
+        elif_block->Print();
+    }
+
+};
+
 struct IfNode: public ASTNode {
     ASTNode* condition = nullptr; // TODO: Change to a more concrete type
     BlockNode* if_block = nullptr;
-    BinaryNode* elif = nullptr;
+    std::vector<ElifNode*> elifs;
     BlockNode* else_block = nullptr;
     IfNode(std::string name) {
         this->name = name;
@@ -129,9 +156,14 @@ struct IfNode: public ASTNode {
         if (if_block != nullptr)
             delete if_block;
         if_block = nullptr;
-        if (elif != nullptr)
-            delete elif;
-        elif = nullptr;
+        std::vector<ElifNode*>::iterator it;
+        for (it = elifs.begin(); it != elifs.end(); ++it) {
+            if ((*it) != nullptr) {
+                delete (*it);
+                (*it) = nullptr;
+            }
+        }
+        elifs.clear();
         if (else_block != nullptr)
             delete else_block;
         else_block = nullptr;
@@ -141,9 +173,12 @@ struct IfNode: public ASTNode {
         condition->Print();
         std::cout << "\t" << name << " -> " << if_block->name << ";" << std::endl;
         if_block->Print();
-        if (elif != nullptr) {
-            std::cout << "\t" << name << " -> " << elif->name << ";" << std::endl;
-            elif->Print();
+        std::vector<ElifNode*>::iterator it;
+        for (it = elifs.begin(); it != elifs.end(); ++it) {
+            if ((*it) != nullptr) {
+                std::cout << "\t" << name << " -> " << (*it)->name << ";" << std::endl;
+                (*it)->Print();
+            }
         }
         if (else_block != nullptr) {
             std::cout << "\t" << name << " -> " << else_block->name << ";" << std::endl;

@@ -49,8 +49,10 @@ struct UnaryNode: public ASTNode {
         child = nullptr;
     }
     virtual void PrintChilds() {
-        std::cout << "\t" << name << " -> " << child->name << ";" << std::endl;
-        child->Print();
+        if (child != nullptr) {
+            std::cout << "\t" << name << " -> " << child->name << ";" << std::endl;
+            child->Print();
+        }
     }
 };
 
@@ -73,10 +75,14 @@ struct BinaryNode: public ASTNode {
         // example:
         // root_2 -> root_2_left
         // root_4_if_3_right
-        std::cout << "\t" << name << " -> " << left->name << ";" << std::endl;
-        left->Print();
-        std::cout << "\t" << name << " -> " << right->name << ";" << std::endl;
-        right->Print();
+        if (left != nullptr) {
+            std::cout << "\t" << name << " -> " << left->name << ";" << std::endl;
+            left->Print();
+        }
+        if (right != nullptr) {
+            std::cout << "\t" << name << " -> " << right->name << ";" << std::endl;
+            right->Print();
+        }
     }
 };
 
@@ -171,8 +177,11 @@ struct IfNode: public ASTNode {
 
 
 struct AST {
+    //ASTNode* root = new BlockNode("root");
     ASTNode* root = nullptr;
-    AST(){}
+    AST(ASTNode* r) {
+        root = r;
+    }
     ~AST() {
         if (root != nullptr) {
             delete root;

@@ -49,8 +49,10 @@ struct UnaryNode: public ASTNode {
         child = nullptr;
     }
     virtual void PrintChilds() {
-        std::cout << "\t" << name << " -> " << child->name << ";" << std::endl;
-        child->Print();
+        if (child != nullptr) {
+            std::cout << "\t" << name << " -> " << child->name << ";" << std::endl;
+            child->Print();
+        }
     }
 };
 

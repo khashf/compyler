@@ -29,6 +29,18 @@ int main() {
     root_1->condition = new BinaryNode(MakeName(root_1->name, "cond"), "GT");
     root_1->if_block = new BlockNode(MakeName(root_1->name, "if"));
 
+    BinaryNode* root_1_condition = dynamic_cast<BinaryNode*>(root_1->condition);
+    root_1_condition->left = new LiteralNode(MakeName(root_1_condition->name, "left"), "Identifier", "a");
+    root_1_condition->right = new LiteralNode(MakeName(root_1_condition->name, "right"), "Integer", "2");
+
+    BlockNode* root_1_if_block = dynamic_cast<BlockNode*>(root_1->if_block);
+    root_1_if_block->childs.push_back(new BinaryNode(MakeName(root_1_if_block->name, "0"), "Assignment"));
+    root_1_if_block->childs.push_back(new IfNode(MakeName(root_1_if_block->name, "1")));
+
+    IfNode* child_if = dynamic_cast<IfNode*>(root_1->if_block->childs[1]);
+    child_if->condition = new UnaryNode(MakeName(child_if->name, "cond"), "NOT");
+    child_if->if_block = new BlockNode(MakeName(child_if->name, "if"));
+
     tree.Print();
 
     return 0;

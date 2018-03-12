@@ -3,7 +3,6 @@
 #include <set>
 
 #include "parser.hpp"
-#include "ast.hpp"
 
 extern int yylex();
 void yyerror(YYLTYPE* loc, const char* err);
@@ -14,17 +13,25 @@ std::string* translate_boolean_str(std::string* boolean_str);
  * generated, and symbols is a simple symbol table.
  */
 std::string* target_program;
+ASTNode* root = new BlockNode("root");
 std::set<std::string> symbols;
 %}
 
-/* Enable location tracking. */
+ /* Enable location tracking. */
+%code requires {
+    #include "ast.hpp"
+}
 %locations
 
 /*
  * All program constructs will be represented as strings, specifically as
  * their corresponding C/C++ translation.
  */
-%define api.value.type { std::string* }
+/* %define api.value.type { std::string* } */
+%union {
+    std::string* str;
+    ASTNode* node;
+}
 
 /*
  * Because the lexer can generate more than one token at a time (i.e. DEDENT
@@ -32,18 +39,28 @@ std::set<std::string> symbols;
  */
 %define api.pure full
 %define api.push-pull push
-
+%define parse.error verbose
+    
 /*
  * These are all of the terminals in our grammar, i.e. the syntactic
  * categories that can be recognized by the lexer.
  */
-%token IDENTIFIER
-%token FLOAT INTEGER BOOLEAN
-%token INDENT DEDENT NEWLINE
-%token AND BREAK DEF ELIF ELSE FOR IF NOT OR RETURN WHILE
-%token ASSIGN PLUS MINUS TIMES DIVIDEDBY
-%token EQ NEQ GT GTE LT LTE
-%token LPAREN RPAREN COMMA COLON
+%token <str> IDENTIFIER
+%token <str> FLOAT INTEGER BOOLEAN
+%token <str> INDENT DEDENT NEWLINE
+%token <str> AND BREAK DEF ELIF ELSE FOR IF NOT OR RETURN WHILE
+%token <str> ASSIGN PLUS MINUS TIMES DIVIDEDBY
+%token <str> EQ NEQ GT GTE LT LTE
+%token <str> LPAREN RPAREN COMMA COLON
+
+%type <node> program
+%type <node> statements
+%type <node> statement assign_statement if_statement while_statement break_statement
+%type <node> expression primary_expression negated_expression
+%type <node> block
+%type <node> condition
+%type <node> elif_blocks else_block
+
 
 /*
  * Here, we're defining the precedence of the operators.  The ones that appear
@@ -70,7 +87,7 @@ std::set<std::string> symbols;
  * combined into a larger string.
  */
 program
-  : statements { target_program = $1; }
+  : statements { root = $1; }
   ;
 
 statements

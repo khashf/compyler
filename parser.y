@@ -8,27 +8,19 @@ extern int yylex();
 void yyerror(YYLTYPE* loc, const char* err);
 std::string* translate_boolean_str(std::string* boolean_str);
 
-/*
- * Here, target_program is a string that will hold the target program being
- * generated, and symbols is a simple symbol table.
- */
 std::string* target_program;
 ASTNode* root = nullptr;
 int n_nodes = 0;
 std::set<std::string> symbols;
 %}
 
- /* Enable location tracking. */
+
 %code requires {
     #include "ast.hpp"
 }
+ /* Enable location tracking. */
 %locations
 
-/*
- * All program constructs will be represented as strings, specifically as
- * their corresponding C/C++ translation.
- */
-/* %define api.value.type { std::string* } */
 %union {
     std::string* str;
     ASTNode* node;
@@ -64,9 +56,7 @@ std::set<std::string> symbols;
 
 
 /*
- * Here, we're defining the precedence of the operators.  The ones that appear
- * later have higher precedence.  All of the operators are left-associative
- * except the "not" operator, which is right-associative.
+ * precedence of the operators.
  */
 %left OR
 %left AND
@@ -75,18 +65,10 @@ std::set<std::string> symbols;
 %left EQ NEQ GT GTE LT LTE
 %right NOT
 
-/* This is our goal/start symbol. */
 %start program
 
 %%
 
-/*
- * Each of the CFG rules below recognizes a particular program construct in
- * Python and creates a new string containing the corresponding C/C++
- * translation.  Since we're allocating strings as we go, we also free them
- * as we no longer need them.  Specifically, each string is freed after it is
- * combined into a larger string.
- */
 program
   : statements { 
         std::string name = "root" + std::to_string(n_nodes);
@@ -407,10 +389,6 @@ void yyerror(YYLTYPE* loc, const char* err) {
   std::cerr << "Error (line " << loc->first_line << "): " << err << std::endl;
 }
 
-/*
- * This function translates a Python boolean value into the corresponding
- * C++ boolean value.
- */
 std::string* translate_boolean_str(std::string* boolean_str) {
   if (*boolean_str == "True") {
     return new std::string("true");
